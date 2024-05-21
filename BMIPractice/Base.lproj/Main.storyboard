@@ -85,9 +85,6 @@
                                         <rect key="frame" x="151.5" y="62" width="108.5" height="27"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="plain" title="Button"/>
-                                        <connections>
-                                            <action selector="buttonPushUp" destination="BYZ-38-t0r" eventType="touchUpInside" id="XUF-Qv-tZv"/>
-                                        </connections>
                                     </button>
                                 </subviews>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -108,9 +105,6 @@
                                 <rect key="frame" x="30" y="441" width="260" height="35"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="Button"/>
-                                <connections>
-                                    <action selector="buttonPushUp" destination="BYZ-38-t0r" eventType="touchUpInside" id="rcz-wj-gYa"/>
-                                </connections>
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
