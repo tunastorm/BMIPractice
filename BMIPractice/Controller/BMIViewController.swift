@@ -25,17 +25,16 @@ class BMIViewController: UIViewController, UITextFieldDelegate {
     var allBmiCount: Int = UserDefaults.standard.integer(forKey: "bmiHistory")
     var userHistory: [Any] = []
     var nickName: String = ""
+    var lastBmiInfo: [String:String] = [:]
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-          nickName = "Man_3"
-        
-//        if allBmiCount == 0 {
-//            nickName = "Man_1"
-//        } else {
-//            nickName = "Man_\(Int.random(in: 2...10))"
-//        }
+        if allBmiCount == 0 {
+            nickName = "Man_1"
+        } else {
+            nickName = "Man_\(Int.random(in: 2...10))"
+        }
                 
         // user의 BMI데이터 내역 조회
         if let history = UserDefaults.standard.array(forKey: "\(nickName)History") {
@@ -66,13 +65,13 @@ class BMIViewController: UIViewController, UITextFieldDelegate {
         setTitleLabelUI(pageDescLabel, text: "\(nickName)님의 BMI지수를 알려드릴게요",
                         bold: false, align: .left, color: .black, lineNumber: 0)
         
-        setTextFieldLabelUI(heightLabel, text: "키가 어떻게 되시나요?")
-        setTextFieldLabelUI(weightLabel, text: "몸무게는 어떻게 되시나요?")
+        setTextFieldLabelUI(heightLabel, text: "")
+        setTextFieldLabelUI(weightLabel, text: "")
         
-        setTextFieldUI(heightTextField)
-        setTextFieldUI(weightTextField)
+        setTextFieldUI(heightTextField, placeholder: "키가 어떻게 되시나요?")
+        setTextFieldUI(weightTextField, placeholder: "몸무게는 어떻게 되시나요?")
         
-        setButtonUI(randomCaculateButton, text: "랜덤으로 BMI 계산하기", textColor: .red)
+        setButtonUI(randomCaculateButton, text: "랜덤으로 BMI 계산하기", textColor: .purple)
         setButtonUI(caculateButton, text: "결과확인", textColor: .white,background: .purple )
         setButtonUI(resetBmiButton, text: "내역 초기화", textColor: .black, background: .lightGray)
         
@@ -109,17 +108,17 @@ class BMIViewController: UIViewController, UITextFieldDelegate {
     
     func setTextFieldLabelUI(_ label: UILabel, text: String) {
         label.text = text
-        label.frame.size = CGSize(width: 140, height: heightLabel.frame.height)
+       // label.frame.size = CGSize(width: 140, height: heightLabel.frame.height)
     }
     
-    func setTextFieldUI(_ textField: UITextField) {
+    func setTextFieldUI(_ textField: UITextField, placeholder: String) {
         textField.heightAnchor.constraint(equalToConstant: textField.frame.height * 1.4)
             .isActive = true
-        // 미적용
         textField.borderStyle = .none
-        textField.layer.borderWidth = 1
-        textField.layer.borderColor = UIColor.black.cgColor
-        textField.layer.cornerRadius = textField.frame.height * 0.4
+//        textField.setPlaceholder(color: .white)
+//        textField.layer.borderWidth = 1
+//        textField.layer.borderColor = UIColor.black.cgColor
+//        textField.layer.cornerRadius = textField.frame.height * 0.4
         
         // 사용자의 기존 이력 있을 시 텍스트 필드의 placeholder로 노출
         guard let lastInex = userHistory.last,
@@ -129,10 +128,11 @@ class BMIViewController: UIViewController, UITextFieldDelegate {
         
         // 마지막 내역이 삭제처리된 경우 예외처리
         guard let available = lastBmiData["available"] else {
+            textField.placeholder = placeholder
             return
         }
-        
         if String(describing: available) == "F" {
+            textField.placeholder = placeholder
             return
         }
         
@@ -151,6 +151,7 @@ class BMIViewController: UIViewController, UITextFieldDelegate {
         print(now)
         print(lastDateStr)
         guard let lastDate = dateFormatter.date(from: lastDateStr) else {
+            textField.placeholder = placeholder
             return
         }
         
@@ -174,11 +175,18 @@ class BMIViewController: UIViewController, UITextFieldDelegate {
         dateFormatter.dateFormat = "yyyy-MM-dd"
         lastDateStr = dateFormatter.string(from: lastDate)
         
+        lastBmiInfo["BMI"] = String(describing: lastBmiData["BMI"] ?? "0")
+        lastBmiInfo["height"] = "\(lastBmiData["height"] ?? "")cm (\(lastbmiStr))"
+        lastBmiInfo["weight"] = "\(lastBmiData["weight"] ?? "")kg (\(lastbmiStr))"
+            
         switch textField.tag {
-        case 0: textField.placeholder = "\(lastBmiData["height"] ?? "")cm (\(lastbmiStr))"
-        case 1: textField.placeholder = "\(lastBmiData["weight"] ?? "")kg (\(lastbmiStr))"
+        case 0: textField.placeholder = lastBmiInfo["height"]
+        case 1: textField.placeholder = lastBmiInfo["weight"]
         default: textField.placeholder = ""
         }
+        
+        pageDescLabel.text = "\(nickName)님의\n최근 BMI 지수:  \(String(lastBmiInfo["BMI"] ?? "0"))"
+        pageDescLabel.font = UIFont.systemFont(ofSize: 20)
              
     }
     
@@ -205,7 +213,6 @@ class BMIViewController: UIViewController, UITextFieldDelegate {
         
         view.viewWithTag(2)?.heightAnchor.constraint(equalToConstant: sumHeights + 2 + 5).isActive = true
     }
-    
     
     func setButtonPushUpEvent(_ button: UIButton) {
         button.addTarget(self, action: #selector(buttonPushUp), for: .touchUpInside)
@@ -330,7 +337,8 @@ class BMIViewController: UIViewController, UITextFieldDelegate {
     }
     
     func setTabGestureHideKeyboard() {
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.hideKeyboard))
+        let tapGesture = UITapGestureRecognizer(target: self, 
+                                                action: #selector(self.hideKeyboard))
         view.addGestureRecognizer(tapGesture)
     }
     
@@ -343,10 +351,15 @@ class BMIViewController: UIViewController, UITextFieldDelegate {
     }
     
     func textFieldShouldReturn(_ sender: UITextField) -> Bool {
+        
         if sender == heightTextField {
             weightTextField.becomeFirstResponder()
+            weightTextField.placeholder = "몸무게는 어떻게 되시나요?"
+            sender.placeholder = lastBmiInfo["height"]
         } else {
             sender.resignFirstResponder()
+            sender.placeholder = "키가 어떻게 되시나요?"
+            weightTextField.placeholder = lastBmiInfo["weight"]
         }
         
         return true
@@ -366,8 +379,6 @@ class BMIViewController: UIViewController, UITextFieldDelegate {
             
             return
         }
-        
-        print(lastBmiData)
         
         guard let available = lastBmiData["available"] else {
             return
@@ -399,4 +410,25 @@ class BMIViewController: UIViewController, UITextFieldDelegate {
         alert.addAction(cancle)
         present(alert, animated: true)
     }
+    
+    @IBAction func textFieldClicked(_ sender: UITextField) {
+        if sender.tag == 0 {
+            sender.placeholder = "키가 어떻게 되시나요?"
+            weightTextField.placeholder = lastBmiInfo["weight"]
+        } else if sender.tag == 1 {
+            sender.placeholder = "몸무게는 어떻게 되시나요?"
+            heightTextField.placeholder = lastBmiInfo["height"]
+        }
+    
+    }
 }
+
+
+//extension UITextField {
+//    func setPlaceholder(color: UIColor) {
+//        guard let string = self.placeholder else {
+//            return
+//        }
+//        attributedPlaceholder = NSAttributedString(string: string, attributes: [.foregroundColor: color])
+//    }
+//}
