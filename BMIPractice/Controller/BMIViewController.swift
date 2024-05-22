@@ -145,11 +145,18 @@ class BMIViewController: UIViewController, UITextFieldDelegate {
     }
     
     func calculateBMI(height: Double, weight:  Double) -> Double{
-        let bmi = weight/(height * height)
+        var bmi = weight/(height * height) * 10000
         
-        return bmi * 10000
+        let numberFomatter = NumberFormatter()
+        numberFomatter.roundingMode = .floor // 형식을 버림으로 지정
+        numberFomatter.maximumSignificantDigits = 3  // 자르길 원하는 자릿수
+        
+        bmi = Double(numberFomatter.string(for: bmi) ?? "0") ?? 0
+        
+        return bmi
+        
     }
-    
+        
     func getBMI(senderTag: Int) -> Double {
         var bmi: Double = 0
         
